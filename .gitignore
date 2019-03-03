@@ -1,0 +1,6 @@
+*.test
+*.out
+
+ed25519-client
+.DS_Store
+.idea/
