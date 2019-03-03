@@ -6,6 +6,7 @@ import (
 )
 
 type zeroReader struct{}
+
 func (zeroReader) Read(buf []byte) (int, error) {
 	for i := range buf {
 		buf[i] = 0
@@ -13,7 +14,7 @@ func (zeroReader) Read(buf []byte) (int, error) {
 	return len(buf), nil
 }
 
-func main () {
+func main() {
 	var zero zeroReader
 
 	public, private, _ := ed25519.GenerateKey(zero)
@@ -35,7 +36,7 @@ func main () {
 
 	// You need to use Verify2() to verify signatures generated with Sign2()
 	if !ed25519.Verify2(public1, message, sig) {
-		panic ("failed to verify message signed with sign2")
+		panic("failed to verify message signed with sign2")
 	}
 
 	println("All is groovey")
