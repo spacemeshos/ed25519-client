@@ -23,7 +23,7 @@ func main() {
 	// sign the message
 	sig := ed25519.Sign2(private, message)
 
-	// extract public key from signature and the message
+	// extract the public key from signature and the message
 	public1, err := ed25519.ExtractPublicKey(message, sig)
 
 	if err != nil {
