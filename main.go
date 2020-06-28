@@ -1,62 +1,50 @@
 package main
 
 import (
-	"bytes"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/spacemeshos/ed25519"
+	"io/ioutil"
+	"os"
 )
 
-type zeroReader struct{}
-
-func (zeroReader) Read(buf []byte) (int, error) {
-	for i := range buf {
-		buf[i] = 0
-	}
-	return len(buf), nil
+// Signature verification
+type SignedMessage struct {
+	Text string
+	Signature string
+	PublicKey string
 }
 
 func main() {
-	var zero zeroReader
 
-	public, private, _ := ed25519.GenerateKey(zero)
-	message := []byte("hello spacemesh")
+	// playground()
 
-	fmt.Printf("Message utf-8 hex: ")
-	for i := 0; i < len(message); i++ {
-		fmt.Printf("%x", message[i])
+	if len(os.Args) < 2 {
+		fmt.Println("No provided json file name")
+		return
 	}
-	println()
 
-	// sign the message
-	sig := ed25519.Sign2(private, message)
-
-	// extract the public key from signature and the message
-	public1, err := ed25519.ExtractPublicKey(message, sig)
-
+	data, err := ioutil.ReadFile(os.Args[1])
 	if err != nil {
-		panic("Failed to extract public key from signature and message")
+		fmt.Println("Can't read file:", os.Args[1])
+		return
 	}
 
-	if bytes.Compare(public, public1) != 0 {
-		panic("extracted pub key is incorrect")
+	var sm SignedMessage
+	json.Unmarshal([]byte(data), &sm)
+	fmt.Printf("Message: %s, Signature: %s\n", sm.Text, sm.Signature)
+	msg := []byte(sm.Text)
+	sig, _ := hex.DecodeString(sm.Signature[2:])
+	pub, _ := ed25519.ExtractPublicKey(msg, sig)
+	account2 := pub[12:]
+
+	// verify the signature
+	verified := ed25519.Verify2(pub, msg, sig)
+	if verified == true {
+		fmt.Printf("Valid signature. Message: %s. Account: 0x%x\n", msg, account2 )
+	} else {
+		fmt.Printf("Invalid signature. Message: %s. Account: 0x%x\n", msg, account2 )
 	}
 
-	// You need to use Verify2() to verify signatures generated with Sign2()
-	if !ed25519.Verify2(public1, message, sig) {
-		panic("failed to verify message signed with sign2")
-	}
-
-
-	// pub, _ := hex.DecodeString("40eebccd54af06be0c7b4df54fcd5295754e6732eb64d5f8340751c72032db8a")
-	pri, _ := hex.DecodeString("fe242b00cf1d3d025f9eecc129a479d43259f061ccc3e4167b7678dee2ac53b740eebccd54af06be0c7b4df54fcd5295754e6732eb64d5f8340751c72032db8a")
-	sig = ed25519.Sign2(pri, message)
-	fmt.Printf("Signature hex: %x \n", sig)
-	expectedSig, _ := hex.DecodeString("20122e1b75012f5a816b0db5a0673a1d5599112120a6a6b8616c9768dcc275086dfa556c92424d9d5e9cef181b92307a8176caf8e403491e416f0a7690877b01")
-
-	if bytes.Compare(sig, expectedSig) != 0 {
-		panic("Signature mismatch")
-	}
-
-	println("All is cool.")
 }
