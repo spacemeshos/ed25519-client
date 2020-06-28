@@ -55,7 +55,7 @@ func main() {
 	expectedSig, _ := hex.DecodeString("20122e1b75012f5a816b0db5a0673a1d5599112120a6a6b8616c9768dcc275086dfa556c92424d9d5e9cef181b92307a8176caf8e403491e416f0a7690877b01")
 
 	if bytes.Compare(sig, expectedSig) != 0 {
-		panic("Signature mismatchthe ")
+		panic("Signature mismatch")
 	}
 
 	println("All is cool.")
